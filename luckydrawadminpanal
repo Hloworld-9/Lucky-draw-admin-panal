@@ -1,0 +1,1633 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>सावित्री इलेक्ट्रॉनिक्स - Master Admin Portal</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Yatra+One&family=JetBrains+Mono:wght@700;800&display=swap" rel="stylesheet">
+    <!-- html5-qrcode for Camera QR Scanning -->
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <!-- canvas-confetti for Winner Celebration -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --primary: #991b1b;
+            --primary-dark: #450a0a;
+            --accent: #f59e0b;
+            --gold: #fde047;
+            --bg-light: #f1f5f9;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg-light);
+            color: var(--text-main);
+            min-height: 100vh;
+        }
+
+        /* ================= PIN LOCK SCREEN ================= */
+        #pin-lock-screen {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(145deg, #2a0800 0%, #7f1d1d 50%, #ea580c 100%);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .pin-card {
+            background: #ffffff;
+            width: 100%;
+            max-width: 380px;
+            border-radius: 22px;
+            border: 4px solid var(--accent);
+            padding: 26px 20px;
+            text-align: center;
+            box-shadow: 0 20px 45px rgba(0,0,0,0.45);
+        }
+
+        .pin-card .brand {
+            font-family: 'Yatra One', serif;
+            font-size: 2rem;
+            color: var(--primary);
+            line-height: 1.1;
+        }
+
+        .pin-card .sub {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 4px 0 18px;
+        }
+
+        .pin-input {
+            width: 100%;
+            padding: 13px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.35rem;
+            font-weight: 800;
+            text-align: center;
+            letter-spacing: 8px;
+            border: 2px solid #cbd5e1;
+            border-radius: 12px;
+            margin-bottom: 14px;
+            outline: none;
+        }
+
+        .pin-input:focus {
+            border-color: var(--primary);
+        }
+
+        .btn-unlock {
+            width: 100%;
+            background: linear-gradient(90deg, #7f1d1d, #b91c1c);
+            color: #fff;
+            border: 2px solid var(--gold);
+            padding: 13px;
+            border-radius: 12px;
+            font-size: 0.98rem;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        /* ================= TOP NAVBAR ================= */
+        .topbar {
+            background: linear-gradient(90deg, #2a0800, #7f1d1d, #3b0707);
+            color: #ffffff;
+            padding: 12px 18px;
+            border-bottom: 3px solid var(--accent);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .topbar-inner {
+            max-width: 1320px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .brand-logo-text {
+            font-family: 'Yatra One', serif;
+            font-size: 1.5rem;
+            color: var(--gold);
+            line-height: 1.1;
+        }
+
+        .top-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn-top {
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-scan-primary {
+            background: var(--gold);
+            color: #3b0707;
+        }
+
+        .btn-refresh {
+            background: rgba(255,255,255,0.14);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.25);
+        }
+
+        /* ================= MAIN CONTAINER ================= */
+        .container {
+            max-width: 1320px;
+            margin: 0 auto;
+            padding: 16px 14px 40px;
+        }
+
+        /* ================= 5 CLICKABLE CATEGORY TABS (ALL, NORMAL, SILVER, GOLD, PLATINUM) ================= */
+        .section-label {
+            font-size: 0.78rem;
+            font-weight: 800;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            margin-bottom: 8px;
+        }
+
+        .category-tabs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(185px, 1fr));
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .cat-tab-card {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 14px 16px;
+            border: 2px solid #e2e8f0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.04);
+        }
+
+        .cat-tab-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .cat-tab-card.active-tab {
+            border-color: #991b1b;
+            background: #fffbeb;
+            box-shadow: 0 8px 20px rgba(153, 27, 27, 0.15);
+        }
+
+        .cat-tab-card .c-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.78rem;
+            font-weight: 800;
+            color: #334155;
+        }
+
+        .cat-tab-card .c-num {
+            font-size: 1.9rem;
+            font-weight: 900;
+            margin-top: 6px;
+            line-height: 1;
+        }
+
+        .cat-tab-card .c-sub {
+            font-size: 0.68rem;
+            font-weight: 600;
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        .tab-all { border-left: 6px solid #991b1b; }
+        .tab-normal { border-left: 6px solid #0284c7; }
+        .tab-silver { border-left: 6px solid #64748b; }
+        .tab-gold { border-left: 6px solid #d97706; }
+        .tab-platinum { border-left: 6px solid #7c3aed; }
+
+        /* ================= SECONDARY STATUS COUNTERS ================= */
+        .sub-stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .mini-stat {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+
+        .mini-stat strong {
+            font-size: 1.15rem;
+            font-weight: 800;
+        }
+
+        /* ================= CATEGORY-WISE EXCEL EXPORT BAR ================= */
+        .excel-export-bar {
+            background: #ffffff;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 14px;
+            padding: 12px 16px;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .excel-export-bar .ex-title {
+            font-size: 0.82rem;
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        .excel-btn-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn-excel {
+            padding: 7px 12px;
+            border-radius: 8px;
+            font-size: 0.74rem;
+            font-weight: 700;
+            cursor: pointer;
+            border: 1px solid transparent;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .ex-all { background: #0f172a; color: #fff; }
+        .ex-normal { background: #e0f2fe; color: #0369a1; border-color: #7dd3fc; }
+        .ex-silver { background: #f1f5f9; color: #334155; border-color: #cbd5e1; }
+        .ex-gold { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
+        .ex-platinum { background: #f3e8ff; color: #6b21a8; border-color: #d8b4fe; }
+
+        /* ================= SCANNER & LUCKY DRAW PANELS ================= */
+        .action-panels-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        .panel-card {
+            background: #ffffff;
+            border-radius: 16px;
+            border: 1.5px solid #e2e8f0;
+            padding: 16px;
+        }
+
+        .panel-title {
+            font-size: 0.92rem;
+            font-weight: 800;
+            color: #1e293b;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .manual-lookup-bar {
+            display: flex;
+            gap: 8px;
+        }
+
+        .manual-lookup-bar input {
+            flex: 1;
+            padding: 10px 12px;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.86rem;
+            font-weight: 700;
+            outline: none;
+        }
+
+        .btn-verify {
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            padding: 0 16px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.82rem;
+            cursor: pointer;
+        }
+
+        .scanner-btn-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .btn-cam-scan {
+            flex: 1;
+            background: #16a34a;
+            color: #fff;
+            border: none;
+            padding: 10px 12px;
+            border-radius: 10px;
+            font-weight: 800;
+            font-size: 0.82rem;
+            cursor: pointer;
+        }
+
+        .btn-stop-scan {
+            background: #dc2626;
+            color: #fff;
+            border: none;
+            padding: 10px 12px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+
+        #qr-reader {
+            width: 100%;
+            margin-top: 10px;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .lucky-draw-box {
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            border: 1.5px solid #f59e0b;
+        }
+
+        .roller-display {
+            background: #2a0800;
+            color: var(--gold);
+            border: 2px solid #fbbf24;
+            border-radius: 12px;
+            padding: 10px;
+            text-align: center;
+            margin: 8px 0;
+            min-height: 70px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .roller-serial {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.2rem;
+            font-weight: 800;
+        }
+
+        .roller-name {
+            font-size: 0.82rem;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .draw-controls {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .draw-controls select {
+            padding: 8px 10px;
+            border-radius: 8px;
+            border: 1.5px solid #d97706;
+            font-weight: 700;
+            font-size: 0.76rem;
+            background: #fff;
+        }
+
+        .btn-spin-winner {
+            flex: 1;
+            background: linear-gradient(90deg, #b91c1c, #ea580c);
+            color: #fff;
+            border: none;
+            padding: 9px 14px;
+            border-radius: 8px;
+            font-weight: 800;
+            font-size: 0.82rem;
+            cursor: pointer;
+        }
+
+        /* ================= SEARCH & FILTER BAR ================= */
+        .table-controls-card {
+            background: #ffffff;
+            border-radius: 16px;
+            border: 1.5px solid #e2e8f0;
+            padding: 14px;
+            margin-bottom: 14px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .search-input-wrap {
+            flex: 1;
+            min-width: 220px;
+        }
+
+        .search-input-wrap input {
+            width: 100%;
+            padding: 9px 12px;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 10px;
+            font-size: 0.84rem;
+            outline: none;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .filter-select {
+            padding: 8px 10px;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 10px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            background: #f8fafc;
+            color: #1e293b;
+        }
+
+        /* ================= DATA TABLE ================= */
+        .active-category-banner {
+            background: #1e293b;
+            color: #ffffff;
+            padding: 10px 16px;
+            border-top-left-radius: 16px;
+            border-top-right-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.88rem;
+            font-weight: 800;
+        }
+
+        .table-wrapper {
+            background: #ffffff;
+            border-bottom-left-radius: 16px;
+            border-bottom-right-radius: 16px;
+            border: 1.5px solid #e2e8f0;
+            border-top: none;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 960px;
+        }
+
+        th {
+            background: #f8fafc;
+            color: #334155;
+            font-size: 0.73rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            padding: 12px 14px;
+            text-align: left;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        td {
+            padding: 11px 14px;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 0.8rem;
+            vertical-align: middle;
+        }
+
+        tr:hover {
+            background: #fffbeb;
+        }
+
+        .serial-badge {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 800;
+            font-size: 0.82rem;
+            color: #991b1b;
+            background: #fee2e2;
+            padding: 3px 8px;
+            border-radius: 6px;
+            display: inline-block;
+        }
+
+        /* Category Badges */
+        .cat-badge {
+            display: inline-block;
+            padding: 3px 9px;
+            border-radius: 99px;
+            font-size: 0.68rem;
+            font-weight: 800;
+        }
+        .cb-normal { background: #e0f2fe; color: #0369a1; border: 1px solid #7dd3fc; }
+        .cb-silver { background: #f1f5f9; color: #334155; border: 1px solid #94a3b8; }
+        .cb-gold { background: #fef3c7; color: #92400e; border: 1px solid #f59e0b; }
+        .cb-platinum { background: #f3e8ff; color: #6b21a8; border: 1px solid #c084fc; }
+
+        /* Status Badges */
+        .badge-status {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 99px;
+            font-size: 0.66rem;
+            font-weight: 800;
+        }
+        .st-active { background: #dcfce7; color: #166534; }
+        .st-redeemed { background: #ffedd5; color: #9a3412; }
+        .st-expired { background: #f1f5f9; color: #64748b; }
+        .st-winner { background: #fae8ff; color: #86198f; border: 1px solid #e879f9; }
+
+        .item-chip {
+            display: inline-block;
+            background: #fff7ed;
+            border: 1px solid #fed7aa;
+            color: #9a3412;
+            font-size: 0.66rem;
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 5px;
+            margin: 2px 2px 0 0;
+        }
+
+        .row-btns {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+
+        .btn-sm {
+            padding: 5px 9px;
+            border-radius: 7px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+        }
+        .btn-view { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+        .btn-wa { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+        .btn-del { background: #fee2e2; color: #b91c1c; }
+
+        /* ================= MODAL ================= */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.72);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 14px;
+        }
+
+        .modal-box {
+            background: #ffffff;
+            width: 100%;
+            max-width: 490px;
+            border-radius: 20px;
+            overflow: hidden;
+            border: 3px solid var(--accent);
+        }
+
+        .modal-header {
+            background: linear-gradient(90deg, #450a0a, #991b1b);
+            color: #fff;
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-header h3 {
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--gold);
+        }
+
+        .btn-close-modal {
+            background: rgba(255,255,255,0.2);
+            color: #fff;
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .modal-body {
+            padding: 16px 18px 20px;
+        }
+
+        .verify-status-banner {
+            padding: 10px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 800;
+            font-size: 0.86rem;
+            margin-bottom: 12px;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            background: #f8fafc;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+
+        .d-item {
+            display: flex;
+            flex-direction: column;
+        }
+        .d-item.full { grid-column: span 2; }
+        .d-item .lbl { font-size: 0.66rem; color: var(--text-muted); font-weight: 600; }
+        .d-item .val { font-size: 0.82rem; font-weight: 700; color: var(--text-main); }
+
+        .redeem-section {
+            background: #fff7ed;
+            border: 1.5px dashed #ea580c;
+            border-radius: 12px;
+            padding: 12px;
+        }
+
+        .redeem-section h4 {
+            font-size: 0.8rem;
+            font-weight: 800;
+            color: #9a3412;
+            margin-bottom: 8px;
+        }
+
+        .redeem-btns-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .btn-redeem-tier {
+            padding: 10px 8px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 800;
+            font-size: 0.76rem;
+            cursor: pointer;
+            color: #fff;
+        }
+        .btn-r-500 { background: #0284c7; }
+        .btn-r-1000 { background: #16a34a; }
+
+        .hidden { display: none !important; }
+
+        @media (max-width: 820px) {
+            .action-panels-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ================= PIN LOCK SCREEN ================= -->
+    <div id="pin-lock-screen">
+        <div class="pin-card">
+            <div class="brand">सावित्री इलेक्ट्रॉनिक्स</div>
+            <div class="sub">Master Admin Control Portal</div>
+            <p style="font-size:0.8rem; color:#475569; margin-bottom:12px; font-weight:600;">
+                मास्टर एडमिन पैनल खोलने के लिए PIN डालें:
+            </p>
+            <form id="pin-form">
+                <input type="password" id="admin-pin-input" class="pin-input" maxlength="8" placeholder="••••" required autofocus>
+                <button type="submit" class="btn-unlock">🔓 मास्टर पैनल खोलें</button>
+            </form>
+            <p id="pin-error" class="hidden" style="color:#dc2626; font-size:0.76rem; font-weight:700; margin-top:10px;">
+                ❌ गलत PIN! (Default PIN: 9569)
+            </p>
+        </div>
+    </div>
+
+    <!-- ================= TOP NAVBAR ================= -->
+    <header class="topbar">
+        <div class="topbar-inner">
+            <div>
+                <div class="brand-logo-text">सावित्री इलेक्ट्रॉनिक्स, रुद्रपुर</div>
+                <div style="font-size:0.7rem; color:#fde68a;">Master Admin Portal • All, Normal, Silver, Gold & Platinum</div>
+            </div>
+
+            <div class="top-actions">
+                <button id="top-scan-btn" class="btn-top btn-scan-primary">📷 QR स्कैन करें</button>
+                <button id="refresh-data-btn" class="btn-top btn-refresh">🔄 रीफ्रेश</button>
+                <button id="lock-panel-btn" class="btn-top btn-refresh">🔒 लॉक</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ================= MAIN CONTAINER ================= -->
+    <main class="container">
+
+        <!-- 5 CLICKABLE CATEGORY TABS -->
+        <div class="section-label">👇 किसी भी कैटेगरी पर क्लिक करके उसके ग्राहकों की अलग लिस्ट देखें:</div>
+        <div class="category-tabs-grid">
+            <div class="cat-tab-card tab-all active-tab" data-cat="ALL" onclick="window.selectCategoryTab('ALL')">
+                <div class="c-top"><span>📊 कुल सभी कूपन (ALL)</span><span>►</span></div>
+                <div id="count-all" class="c-num" style="color:#991b1b;">0</div>
+                <div class="c-sub">चारों कैटेगरी मिलाकर कुल ग्राहक</div>
+            </div>
+
+            <div class="cat-tab-card tab-normal" data-cat="Normal Customer" onclick="window.selectCategoryTab('Normal Customer')">
+                <div class="c-top"><span>🎟️ Normal Customer</span><span>►</span></div>
+                <div id="count-normal" class="c-num" style="color:#0284c7;">0</div>
+                <div class="c-sub">सामान्य लकी ड्रॉ फॉर्म ग्राहक</div>
+            </div>
+
+            <div class="cat-tab-card tab-silver" data-cat="Silver Customer" onclick="window.selectCategoryTab('Silver Customer')">
+                <div class="c-top"><span>🥈 Silver Customer</span><span>►</span></div>
+                <div id="count-silver" class="c-num" style="color:#475569;">0</div>
+                <div class="c-sub">सिल्वर कैटेगरी के ग्राहक</div>
+            </div>
+
+            <div class="cat-tab-card tab-gold" data-cat="Gold Customer" onclick="window.selectCategoryTab('Gold Customer')">
+                <div class="c-top"><span>🥇 Gold Customer</span><span>►</span></div>
+                <div id="count-gold" class="c-num" style="color:#d97706;">0</div>
+                <div class="c-sub">गोल्ड कैटेगरी के ग्राहक</div>
+            </div>
+
+            <div class="cat-tab-card tab-platinum" data-cat="Platinum Customer" onclick="window.selectCategoryTab('Platinum Customer')">
+                <div class="c-top"><span>💎 Platinum Customer</span><span>►</span></div>
+                <div id="count-platinum" class="c-num" style="color:#7c3aed;">0</div>
+                <div class="c-sub">प्लैटिनम कैटेगरी के ग्राहक</div>
+            </div>
+        </div>
+
+        <!-- STATUS SUMMARY ROW -->
+        <div class="sub-stats-row">
+            <div class="mini-stat"><span>✅ एक्टिव कार्ड (90 Days):</span><strong id="stat-active-count" style="color:#16a34a;">0</strong></div>
+            <div class="mini-stat"><span>🎁 रिडीम किए गए (Used):</span><strong id="stat-redeemed-count" style="color:#d97706;">0</strong></div>
+            <div class="mini-stat"><span>💳 0% EMI (Bajaj) ग्राहक:</span><strong id="stat-emi-count" style="color:#0284c7;">0</strong></div>
+            <div class="mini-stat"><span>🏆 लकी ड्रॉ विजेता:</span><strong id="stat-winner-count" style="color:#9333ea;">0</strong></div>
+        </div>
+
+        <!-- SEPARATE EXCEL DOWNLOAD BAR FOR ALL 4 CATEGORIES -->
+        <div class="excel-export-bar">
+            <div class="ex-title">📥 अलग-अलग कैटेगरी का Excel (CSV) डाउनलोड करें:</div>
+            <div class="excel-btn-group">
+                <button type="button" class="btn-excel ex-all" onclick="window.exportCategoryCSV('ALL')">📊 All Customers Excel</button>
+                <button type="button" class="btn-excel ex-normal" onclick="window.exportCategoryCSV('Normal Customer')">🎟️ Normal Excel</button>
+                <button type="button" class="btn-excel ex-silver" onclick="window.exportCategoryCSV('Silver Customer')">🥈 Silver Excel</button>
+                <button type="button" class="btn-excel ex-gold" onclick="window.exportCategoryCSV('Gold Customer')">🥇 Gold Excel</button>
+                <button type="button" class="btn-excel ex-platinum" onclick="window.exportCategoryCSV('Platinum Customer')">💎 Platinum Excel</button>
+            </div>
+        </div>
+
+        <!-- QR SCANNER & LUCKY DRAW PANELS -->
+        <div class="action-panels-grid">
+            <!-- Panel 1: QR Scanner -->
+            <div class="panel-card" id="scanner-panel">
+                <div class="panel-title">
+                    <span>🔍 कूपन वेरिफाई & QR कोड स्कैनर</span>
+                    <span style="font-size:0.7rem; color:#16a34a;">All 4 Categories</span>
+                </div>
+                <form id="manual-verify-form" class="manual-lookup-bar">
+                    <input type="text" id="manual-serial-input" placeholder="कूपन नं. या मोबाइल नंबर डालें (उदा. 81676)">
+                    <button type="submit" class="btn-verify">खोजें</button>
+                </form>
+                <div class="scanner-btn-row">
+                    <button type="button" id="start-camera-btn" class="btn-cam-scan">📷 कैमरा से ग्राहक का QR स्कैन करें</button>
+                    <button type="button" id="stop-camera-btn" class="btn-stop-scan hidden">✖ बंद करें</button>
+                </div>
+                <div id="qr-reader" class="hidden"></div>
+            </div>
+
+            <!-- Panel 2: Lucky Draw Picker -->
+            <div class="panel-card lucky-draw-box">
+                <div class="panel-title">
+                    <span>🎰 लकी ड्रॉ विजेता चुनें (कैटेगरी अनुसार)</span>
+                    <span style="font-size:0.7rem; color:#9a3412;">1 तारीख ड्रॉ</span>
+                </div>
+                <div class="roller-display">
+                    <div id="roller-serial" class="roller-serial">SE-2026/*****</div>
+                    <div id="roller-name" class="roller-name">कैटेगरी और इनाम चुनकर ड्रॉ घुमाएं</div>
+                </div>
+                <div class="draw-controls">
+                    <select id="draw-category-select">
+                        <option value="ALL">सभी कैटेगरी (All)</option>
+                        <option value="Normal Customer">🎟️ सिर्फ Normal</option>
+                        <option value="Silver Customer">🥈 सिर्फ Silver</option>
+                        <option value="Gold Customer">🥇 सिर्फ Gold</option>
+                        <option value="Platinum Customer">💎 सिर्फ Platinum</option>
+                    </select>
+                    <select id="prize-select">
+                        <option value="Smartwatch">⌚ Smartwatch</option>
+                        <option value="Mixer Grinder">⚡ Mixer Grinder</option>
+                        <option value="Electric Iron">🔌 Electric Iron</option>
+                        <option value="Soundbar">🔊 Soundbar</option>
+                    </select>
+                    <button type="button" id="spin-winner-btn" class="btn-spin-winner">🎉 विजेता निकालें!</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SEARCH & FILTERS BAR -->
+        <div class="table-controls-card">
+            <div class="search-input-wrap">
+                <input type="text" id="table-search-input" placeholder="🔎 नाम, कूपन नं., मोबाइल नंबर या गाँव/वार्ड से खोजें...">
+            </div>
+
+            <div class="filter-group">
+                <select id="filter-category" class="filter-select" style="border-color:#991b1b;">
+                    <option value="ALL">👥 सभी कैटेगरी (All Categories)</option>
+                    <option value="Normal Customer">🎟️ Normal Customer</option>
+                    <option value="Silver Customer">🥈 Silver Customer</option>
+                    <option value="Gold Customer">🥇 Gold Customer</option>
+                    <option value="Platinum Customer">💎 Platinum Customer</option>
+                </select>
+
+                <select id="filter-status" class="filter-select">
+                    <option value="ALL">सभी स्टेटस (All Status)</option>
+                    <option value="ACTIVE">✅ Active (मान्य)</option>
+                    <option value="REDEEMED">🎁 Redeemed (Used)</option>
+                    <option value="WINNER">🏆 Lucky Winner</option>
+                    <option value="EXPIRED">⏳ Expired</option>
+                </select>
+
+                <select id="filter-item" class="filter-select">
+                    <option value="ALL">सभी सामान (All Items)</option>
+                    <option value="Smart LED TV">Smart LED TV</option>
+                    <option value="Fridge">Fridge (फ्रिज)</option>
+                    <option value="Washing Machine">Washing Machine</option>
+                    <option value="AC / Cooler">AC / Cooler</option>
+                    <option value="Shaadi">शादी/लगन कॉम्बो</option>
+                    <option value="Exchange">सामान एक्सचेंज</option>
+                </select>
+
+                <select id="filter-payment" class="filter-select">
+                    <option value="ALL">सभी पेमेंट</option>
+                    <option value="EMI">0% EMI (Bajaj)</option>
+                    <option value="Cash">नकद (Cash)</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- ACTIVE VIEW HEADER & CUSTOMERS TABLE -->
+        <div class="active-category-banner">
+            <span id="current-view-title">📋 सभी ग्राहक (All Categories)</span>
+            <span id="filtered-count-badge" style="background:rgba(255,255,255,0.18); padding:3px 10px; border-radius:99px; font-size:0.76rem;">0 ग्राहक</span>
+        </div>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>कैटेगरी (Tier)</th>
+                        <th>कूपन क्र. (Sr No.)</th>
+                        <th>स्टेटस / वैधता</th>
+                        <th>ग्राहक का नाम & मोबाइल</th>
+                        <th>गाँव / वार्ड / पता</th>
+                        <th>ज़रूरत का सामान</th>
+                        <th>पेमेंट / शादी-लगन</th>
+                        <th>एक्शन (Verify / WA)</th>
+                    </tr>
+                </thead>
+                <tbody id="entries-table-body">
+                    <tr>
+                        <td colspan="8" style="text-align:center; padding:30px; font-weight:600; color:#64748b;">
+                            ⏳ चारों कैटेगरी (Normal, Silver, Gold, Platinum) का डेटा लोड हो रहा है...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </main>
+
+    <!-- ================= CUSTOMER VERIFY & REDEEM MODAL ================= -->
+    <div id="verify-modal" class="modal-backdrop hidden">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3 id="modal-coupon-no">कूपन: SE-2026/00000</h3>
+                <button type="button" id="close-modal-btn" class="btn-close-modal">✕</button>
+            </div>
+            <div class="modal-body">
+                <div id="modal-status-banner" class="verify-status-banner"></div>
+
+                <div class="detail-grid">
+                    <div class="d-item">
+                        <span class="lbl">ग्राहक कैटेगरी (Tier)</span>
+                        <span id="m-category" class="val">-</span>
+                    </div>
+                    <div class="d-item">
+                        <span class="lbl">ग्राहक का नाम</span>
+                        <span id="m-name" class="val">-</span>
+                    </div>
+                    <div class="d-item">
+                        <span class="lbl">मोबाइल / व्हाट्सएप</span>
+                        <span id="m-mobile" class="val">-</span>
+                    </div>
+                    <div class="d-item">
+                        <span class="lbl">गाँव / वार्ड / मोहल्ला</span>
+                        <span id="m-address" class="val">-</span>
+                    </div>
+                    <div class="d-item">
+                        <span class="lbl">जारी दिनांक (Issued)</span>
+                        <span id="m-issued" class="val">-</span>
+                    </div>
+                    <div class="d-item">
+                        <span class="lbl">वैधता (90 Days Expiry)</span>
+                        <span id="m-expiry" class="val" style="color:#b91c1c;">-</span>
+                    </div>
+                    <div class="d-item">
+                        <span class="lbl">पेमेंट / शादी-गृह प्रवेश</span>
+                        <span id="m-payment" class="val">-</span>
+                    </div>
+                    <div class="d-item">
+                        <span class="lbl">Gmail ID</span>
+                        <span id="m-email" class="val" style="font-size:0.72rem; word-break:break-all;">-</span>
+                    </div>
+                    <div class="d-item full">
+                        <span class="lbl">आवश्यक सामान (Selected Items)</span>
+                        <span id="m-items" class="val">-</span>
+                    </div>
+                </div>
+
+                <div class="redeem-section">
+                    <h4>💳 दुकान पर खरीदारी के समय डिस्काउंट रिडीम करें:</h4>
+                    <div class="redeem-btns-grid" id="redeem-action-buttons">
+                        <button type="button" id="btn-redeem-500" class="btn-redeem-tier btn-r-500">
+                            ✅ ₹500 छूट दें (₹10k+)
+                        </button>
+                        <button type="button" id="btn-redeem-1000" class="btn-redeem-tier btn-r-1000">
+                            ✅ ₹1,000 छूट दें (₹20k+)
+                        </button>
+                    </div>
+                    <div id="already-redeemed-box" class="hidden" style="text-align:center;">
+                        <p id="redeemed-info-text" style="font-size:0.78rem; font-weight:700; color:#9a3412; margin-bottom:8px;"></p>
+                        <button type="button" id="btn-reactivate-coupon" class="btn-sm btn-view">🔄 कूपन दोबारा Active करें</button>
+                    </div>
+                </div>
+
+                <div style="display:flex; gap:8px; margin-top:12px;">
+                    <a id="m-call-link" href="#" class="btn-sm btn-view" style="flex:1; justify-content:center; padding:10px;">📞 कॉल करें</a>
+                    <a id="m-wa-link" href="#" target="_blank" class="btn-sm btn-wa" style="flex:1; justify-content:center; padding:10px;">💬 WhatsApp भेजें</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // Savitri Electronics Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyBtciCWT5tW7Tx4wVll0BUoEZX0yH2M59s",
+            authDomain: "lucky-draw-form.firebaseapp.com",
+            projectId: "lucky-draw-form",
+            storageBucket: "lucky-draw-form.firebasestorage.app",
+            messagingSenderId: "223399876928",
+            appId: "1:223399876928:web:7b8be629df1f07503542a5",
+            measurementId: "G-ZL7K87SMK4"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Admin PIN (Default: 9569 or 2026)
+        const VALID_PINS = ["9569", "2026", "95692"];
+
+        const pinLockScreen = document.getElementById('pin-lock-screen');
+        const pinForm = document.getElementById('pin-form');
+        const adminPinInput = document.getElementById('admin-pin-input');
+        const pinError = document.getElementById('pin-error');
+        const lockPanelBtn = document.getElementById('lock-panel-btn');
+
+        let allEntries = [];
+        let selectedEntry = null;
+        let html5QrScanner = null;
+
+        // 4 Firebase Collections Mapping
+        const CATEGORY_COLLECTIONS = [
+            { col: "lucky_draw_entries", label: "Normal Customer" },
+            { col: "silver_customers", label: "Silver Customer" },
+            { col: "gold_customers", label: "Gold Customer" },
+            { col: "platinum_customers", label: "Platinum Customer" }
+        ];
+
+        // Unlock check
+        if (sessionStorage.getItem('savitri_master_unlocked') === 'true') {
+            pinLockScreen.classList.add('hidden');
+            loadAllCategoriesData();
+        }
+
+        pinForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const entered = adminPinInput.value.trim();
+            if (VALID_PINS.includes(entered)) {
+                sessionStorage.setItem('savitri_master_unlocked', 'true');
+                pinLockScreen.classList.add('hidden');
+                pinError.classList.add('hidden');
+                loadAllCategoriesData();
+            } else {
+                pinError.classList.remove('hidden');
+                adminPinInput.value = '';
+            }
+        });
+
+        lockPanelBtn.addEventListener('click', () => {
+            sessionStorage.removeItem('savitri_master_unlocked');
+            pinLockScreen.classList.remove('hidden');
+            adminPinInput.value = '';
+        });
+
+        function formatDateDDMMYYYY(dateObj) {
+            const d = String(dateObj.getDate()).padStart(2, '0');
+            const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const y = dateObj.getFullYear();
+            return `${d}/${m}/${y}`;
+        }
+
+        function getCategoryBadgeHtml(cat) {
+            if (cat === "Silver Customer") return `<span class="cat-badge cb-silver">🥈 SILVER</span>`;
+            if (cat === "Gold Customer") return `<span class="cat-badge cb-gold">🥇 GOLD</span>`;
+            if (cat === "Platinum Customer") return `<span class="cat-badge cb-platinum">💎 PLATINUM</span>`;
+            return `<span class="cat-badge cb-normal">🎟️ NORMAL</span>`;
+        }
+
+        function enrichEntry(docSnap, sourceCollection, defaultCategory) {
+            const data = docSnap.data();
+            const category = data.category || defaultCategory;
+            const subDate = data.createdAt
+                ? data.createdAt.toDate()
+                : (data.clientTimestamp ? new Date(data.clientTimestamp) : new Date());
+
+            const now = new Date();
+            const diffDays = (now - subDate) / (1000 * 60 * 60 * 24);
+            const isExpired = diffDays > 90;
+
+            const issuedStr = data.formattedDate || formatDateDDMMYYYY(subDate);
+            const expDateObj = new Date(subDate.getTime() + 90 * 24 * 60 * 60 * 1000);
+            const expiryStr = data.expiryDate || formatDateDDMMYYYY(expDateObj);
+
+            let computedStatus = data.status || "ACTIVE";
+            if (computedStatus === "ACTIVE" && isExpired) {
+                computedStatus = "EXPIRED";
+            }
+
+            return {
+                id: docSnap.id,
+                sourceCollection,
+                category,
+                ...data,
+                subDate,
+                issuedStr,
+                expiryStr,
+                daysLeft: Math.max(0, Math.ceil(90 - diffDays)),
+                computedStatus
+            };
+        }
+
+        // Load Data from All 4 Collections Simultaneously
+        async function loadAllCategoriesData() {
+            const tbody = document.getElementById('entries-table-body');
+            tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:28px;">⏳ चारों कैटेगरी (Normal, Silver, Gold, Platinum) से डेटा लोड हो रहा है...</td></tr>`;
+
+            try {
+                const snapshots = await Promise.all(
+                    CATEGORY_COLLECTIONS.map(item => getDocs(collection(db, item.col)))
+                );
+
+                const combined = [];
+                snapshots.forEach((snap, idx) => {
+                    const colInfo = CATEGORY_COLLECTIONS[idx];
+                    snap.forEach((docSnap) => {
+                        combined.push(enrichEntry(docSnap, colInfo.col, colInfo.label));
+                    });
+                });
+
+                // Sort newest first
+                combined.sort((a, b) => b.subDate - a.subDate);
+                allEntries = combined;
+
+                updateMasterCounters();
+                renderEntriesTable();
+            } catch (error) {
+                console.error("Load error:", error);
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:#dc2626; padding:28px;">❌ डेटा लोड करने में समस्या: ${error.message}</td></tr>`;
+            }
+        }
+
+        document.getElementById('refresh-data-btn').addEventListener('click', loadAllCategoriesData);
+
+        // Update Top Category Counters & Secondary Stats
+        function updateMasterCounters() {
+            const totalAll = allEntries.length;
+            const totalNormal = allEntries.filter(e => e.category === "Normal Customer").length;
+            const totalSilver = allEntries.filter(e => e.category === "Silver Customer").length;
+            const totalGold = allEntries.filter(e => e.category === "Gold Customer").length;
+            const totalPlatinum = allEntries.filter(e => e.category === "Platinum Customer").length;
+
+            document.getElementById('count-all').textContent = totalAll;
+            document.getElementById('count-normal').textContent = totalNormal;
+            document.getElementById('count-silver').textContent = totalSilver;
+            document.getElementById('count-gold').textContent = totalGold;
+            document.getElementById('count-platinum').textContent = totalPlatinum;
+
+            const active = allEntries.filter(e => e.computedStatus === "ACTIVE").length;
+            const redeemed = allEntries.filter(e => e.computedStatus === "REDEEMED").length;
+            const emi = allEntries.filter(e => (e.paymentMode || '').includes('EMI')).length;
+            const winners = allEntries.filter(e => e.isWinner === true).length;
+
+            document.getElementById('stat-active-count').textContent = active;
+            document.getElementById('stat-redeemed-count').textContent = redeemed;
+            document.getElementById('stat-emi-count').textContent = emi;
+            document.getElementById('stat-winner-count').textContent = winners;
+        }
+
+        // Clickable Top Category Cards Handler
+        window.selectCategoryTab = function(categoryValue) {
+            document.getElementById('filter-category').value = categoryValue;
+
+            document.querySelectorAll('.cat-tab-card').forEach(card => {
+                if (card.getAttribute('data-cat') === categoryValue) {
+                    card.classList.add('active-tab');
+                } else {
+                    card.classList.remove('active-tab');
+                }
+            });
+
+            const titleMap = {
+                "ALL": "📋 सभी ग्राहक (All Categories - Normal, Silver, Gold, Platinum)",
+                "Normal Customer": "🎟️ Normal Customers की लिस्ट",
+                "Silver Customer": "🥈 Silver Customers की लिस्ट",
+                "Gold Customer": "🥇 Gold Customers की लिस्ट",
+                "Platinum Customer": "💎 Platinum Customers की लिस्ट"
+            };
+            document.getElementById('current-view-title').textContent = titleMap[categoryValue] || titleMap["ALL"];
+
+            renderEntriesTable();
+        };
+
+        // WhatsApp Link Builder
+        function createWhatsAppLink(entry) {
+            const cleanPhone = (entry.mobileNumber || '').replace(/\D/g, '');
+            const phoneWithCode = cleanPhone.length === 10 ? `91${cleanPhone}` : cleanPhone;
+            const msg = `नमस्ते ${entry.fullName || 'जी'}! 🙏\n*सावित्री इलेक्ट्रॉनिक्स, रुद्रपुर* में आपका स्वागत है।\n\n🎟️ आपका कैश वाउचर कार्ड नं.: *${entry.couponNo || 'SE-2026'}*\n📅 वैधता: *${entry.expiryStr}* तक (90 दिन)\n\n💵 *आपका पक्का लाभ:*\n• ₹10,000+ की खरीदारी पर *₹500 की सीधी छूट*\n• ₹20,000+ की खरीदारी पर *₹1,000 की सीधी छूट*\n• Bajaj Finserv से 0% ब्याज पर आसान EMI उपलब्ध!\n\n📍 पता: रुद्रपुर, गोला वार्ड, मूर्ति नं. 1 के सामने | मो.: 9569242717`;
+            return `https://wa.me/${phoneWithCode}?text=${encodeURIComponent(msg)}`;
+        }
+
+        // Render Filtered Table
+        function renderEntriesTable() {
+            const tbody = document.getElementById('entries-table-body');
+            const searchVal = document.getElementById('table-search-input').value.trim().toLowerCase();
+            const catFilter = document.getElementById('filter-category').value;
+            const statusFilter = document.getElementById('filter-status').value;
+            const itemFilter = document.getElementById('filter-item').value;
+            const payFilter = document.getElementById('filter-payment').value;
+
+            const filtered = allEntries.filter((e) => {
+                if (catFilter !== "ALL" && e.category !== catFilter) return false;
+
+                const haystack = `${e.couponNo || ''} ${e.fullName || ''} ${e.mobileNumber || ''} ${e.address || ''} ${e.email || ''} ${e.category || ''}`.toLowerCase();
+                if (searchVal && !haystack.includes(searchVal)) return false;
+
+                if (statusFilter === "WINNER") {
+                    if (!e.isWinner) return false;
+                } else if (statusFilter !== "ALL" && e.computedStatus !== statusFilter) {
+                    return false;
+                }
+
+                if (itemFilter !== "ALL") {
+                    const itemsStr = Array.isArray(e.itemsNeeded) ? e.itemsNeeded.join(' ') : '';
+                    if (!itemsStr.toLowerCase().includes(itemFilter.toLowerCase())) return false;
+                }
+
+                if (payFilter !== "ALL") {
+                    if (!(e.paymentMode || '').toLowerCase().includes(payFilter.toLowerCase())) return false;
+                }
+
+                return true;
+            });
+
+            document.getElementById('filtered-count-badge').textContent = `${filtered.length} ग्राहक`;
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:28px; color:#64748b; font-weight:600;">इस फिल्टर में कोई ग्राहक डेटा नहीं मिला।</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map((e) => {
+                let statusBadge = `<span class="badge-status st-active">ACTIVE (${e.daysLeft}d)</span>`;
+                if (e.computedStatus === "REDEEMED") {
+                    statusBadge = `<span class="badge-status st-redeemed">REDEEMED (${e.redeemedTier || 'Used'})</span>`;
+                } else if (e.computedStatus === "EXPIRED") {
+                    statusBadge = `<span class="badge-status st-expired">EXPIRED</span>`;
+                }
+
+                const winnerBadge = e.isWinner
+                    ? `<div style="margin-top:4px;"><span class="badge-status st-winner">🏆 ${e.wonPrize || 'Winner'}</span></div>`
+                    : '';
+
+                const itemsHtml = (Array.isArray(e.itemsNeeded) && e.itemsNeeded.length > 0)
+                    ? e.itemsNeeded.map(i => `<span class="item-chip">${i}</span>`).join('')
+                    : `<span style="color:#94a3b8; font-size:0.74rem;">-</span>`;
+
+                const waUrl = createWhatsAppLink(e);
+
+                return `
+                    <tr>
+                        <td>${getCategoryBadgeHtml(e.category)}</td>
+                        <td>
+                            <span class="serial-badge">${e.couponNo || 'SE-2026/N-A'}</span>
+                            <div style="font-size:0.66rem; color:#64748b; margin-top:2px;">📅 ${e.issuedStr}</div>
+                        </td>
+                        <td>
+                            ${statusBadge}
+                            ${winnerBadge}
+                            <div style="font-size:0.65rem; color:#64748b; margin-top:2px;">वैध: ${e.expiryStr}</div>
+                        </td>
+                        <td>
+                            <div style="font-weight:800; color:#0f172a;">${e.fullName || '-'}</div>
+                            <div style="font-weight:700; color:#b91c1c; font-size:0.78rem;">📱 ${e.mobileNumber || '-'}</div>
+                        </td>
+                        <td><div style="font-weight:600;">${e.address || '-'}</div></td>
+                        <td>${itemsHtml}</td>
+                        <td>
+                            <div style="font-weight:700; color:#0369a1; font-size:0.75rem;">${e.paymentMode || '-'}</div>
+                            ${e.occasionDate ? `<div style="font-size:0.68rem; color:#9a3412;">🎉 ${e.occasionDate}</div>` : ''}
+                        </td>
+                        <td>
+                            <div class="row-btns">
+                                <button type="button" class="btn-sm btn-view" onclick="window.openEntryModal('${e.id}', '${e.sourceCollection}')">
+                                    🔍 Verify / छूट
+                                </button>
+                                <a href="${waUrl}" target="_blank" class="btn-sm btn-wa">💬 WA</a>
+                                <button type="button" class="btn-sm btn-del" onclick="window.deleteCustomerEntry('${e.id}', '${e.sourceCollection}')">🗑️</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Sync Dropdown Filter with Top Tabs
+        document.getElementById('filter-category').addEventListener('change', (e) => {
+            window.selectCategoryTab(e.target.value);
+        });
+        document.getElementById('table-search-input').addEventListener('input', renderEntriesTable);
+        document.getElementById('filter-status').addEventListener('change', renderEntriesTable);
+        document.getElementById('filter-item').addEventListener('change', renderEntriesTable);
+        document.getElementById('filter-payment').addEventListener('change', renderEntriesTable);
+
+        // ================= VERIFICATION & REDEMPTION MODAL =================
+        const verifyModal = document.getElementById('verify-modal');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+
+        window.openEntryModal = function(docId, sourceCol) {
+            const entry = allEntries.find(item => item.id === docId && (!sourceCol || item.sourceCollection === sourceCol));
+            if (!entry) return;
+            selectedEntry = entry;
+
+            document.getElementById('modal-coupon-no').textContent = `कूपन क्र.: ${entry.couponNo || 'SE-2026'}`;
+            document.getElementById('m-category').innerHTML = getCategoryBadgeHtml(entry.category);
+            document.getElementById('m-name').textContent = entry.fullName || '-';
+            document.getElementById('m-mobile').textContent = entry.mobileNumber || '-';
+            document.getElementById('m-address').textContent = entry.address || '-';
+            document.getElementById('m-email').textContent = entry.email || '-';
+            document.getElementById('m-issued').textContent = entry.issuedStr;
+            document.getElementById('m-expiry').textContent = `${entry.expiryStr} (${entry.daysLeft} दिन शेष)`;
+            document.getElementById('m-payment').textContent = `${entry.paymentMode || '-'} ${entry.occasionDate ? '(' + entry.occasionDate + ')' : ''}`;
+            document.getElementById('m-items').textContent = (Array.isArray(entry.itemsNeeded) && entry.itemsNeeded.length > 0)
+                ? entry.itemsNeeded.join(', ')
+                : 'सभी इलेक्ट्रॉनिक्स सामान';
+
+            const statusBanner = document.getElementById('modal-status-banner');
+            const redeemBtns = document.getElementById('redeem-action-buttons');
+            const alreadyRedeemedBox = document.getElementById('already-redeemed-box');
+
+            if (entry.computedStatus === "REDEEMED") {
+                statusBanner.style.background = "#ffedd5";
+                statusBanner.style.color = "#9a3412";
+                statusBanner.innerHTML = `⚠️ यह कूपन पहले ही रिडीम (Used) हो चुका है!`;
+                redeemBtns.classList.add('hidden');
+                alreadyRedeemedBox.classList.remove('hidden');
+                document.getElementById('redeemed-info-text').textContent =
+                    `छूट दी गई: ${entry.redeemedTier || 'Discount Used'} (दिनांक: ${entry.redeemedDate || '-'})`;
+            } else if (entry.computedStatus === "EXPIRED") {
+                statusBanner.style.background = "#fee2e2";
+                statusBanner.style.color = "#991b1b";
+                statusBanner.innerHTML = `❌ इस कूपन की 90 दिनों की वैधता समाप्त हो चुकी है!`;
+                redeemBtns.classList.remove('hidden');
+                alreadyRedeemedBox.classList.add('hidden');
+            } else {
+                statusBanner.style.background = "#dcfce7";
+                statusBanner.style.color = "#166534";
+                statusBanner.innerHTML = `✅ कूपन मान्य (VALID) है! (${entry.daysLeft} दिन बाकी)`;
+                redeemBtns.classList.remove('hidden');
+                alreadyRedeemedBox.classList.add('hidden');
+            }
+
+            document.getElementById('m-call-link').href = `tel:${entry.mobileNumber || ''}`;
+            document.getElementById('m-wa-link').href = createWhatsAppLink(entry);
+
+            verifyModal.classList.remove('hidden');
+        };
+
+        closeModalBtn.addEventListener('click', () => {
+            verifyModal.classList.add('hidden');
+        });
+
+        async function markCouponRedeemed(discountTierText) {
+            if (!selectedEntry) return;
+            try {
+                const nowStr = formatDateDDMMYYYY(new Date());
+                const docRef = doc(db, selectedEntry.sourceCollection, selectedEntry.id);
+                await updateDoc(docRef, {
+                    status: "REDEEMED",
+                    redeemedTier: discountTierText,
+                    redeemedDate: nowStr
+                });
+                alert(`🎉 कूपन ${selectedEntry.couponNo} (${selectedEntry.category}) पर "${discountTierText}" लागू हो गया!`);
+                verifyModal.classList.add('hidden');
+                await loadAllCategoriesData();
+            } catch (error) {
+                alert("अपडेट में समस्या: " + error.message);
+            }
+        }
+
+        document.getElementById('btn-redeem-500').addEventListener('click', () => {
+            markCouponRedeemed("₹500 OFF (₹10k+ Purchase)");
+        });
+
+        document.getElementById('btn-redeem-1000').addEventListener('click', () => {
+            markCouponRedeemed("₹1,000 OFF (₹20k+ Purchase)");
+        });
+
+        document.getElementById('btn-reactivate-coupon').addEventListener('click', async () => {
+            if (!selectedEntry) return;
+            try {
+                const docRef = doc(db, selectedEntry.sourceCollection, selectedEntry.id);
+                await updateDoc(docRef, {
+                    status: "ACTIVE",
+                    redeemedTier: null,
+                    redeemedDate: null
+                });
+                verifyModal.classList.add('hidden');
+                await loadAllCategoriesData();
+            } catch (error) {
+                alert("री-एक्टिवेट करने में समस्या: " + error.message);
+            }
+        });
+
+        window.deleteCustomerEntry = async function(docId, sourceCol) {
+            const entry = allEntries.find(e => e.id === docId && e.sourceCollection === sourceCol);
+            if (!entry) return;
+            if (!confirm(`क्या आप वाकई "${entry.fullName}" (${entry.category} - ${entry.couponNo}) को डिलीट करना चाहते हैं?`)) return;
+
+            try {
+                await deleteDoc(doc(db, entry.sourceCollection, docId));
+                await loadAllCategoriesData();
+            } catch (error) {
+                alert("डिलीट करने में समस्या: " + error.message);
+            }
+        };
+
+        // ================= QR SCANNER & MANUAL SERIAL LOOKUP =================
+        function findAndOpenByQueryText(rawText) {
+            if (!rawText) return;
+            const cleaned = rawText.trim();
+            let serialMatch = cleaned.match(/SE-\d{4}\/\d+/i);
+            let searchKey = serialMatch ? serialMatch[0].toUpperCase() : cleaned.toUpperCase();
+
+            const found = allEntries.find(e => {
+                const cNo = (e.couponNo || '').toUpperCase();
+                const mob = (e.mobileNumber || '');
+                return cNo === searchKey || cNo.endsWith(searchKey) || mob === searchKey;
+            });
+
+            if (found) {
+                window.openEntryModal(found.id, found.sourceCollection);
+            } else {
+                alert(`❌ "${searchKey}" नंबर का कोई कूपन किसी भी कैटेगरी में नहीं मिला!`);
+            }
+        }
+
+        document.getElementById('manual-verify-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            findAndOpenByQueryText(document.getElementById('manual-serial-input').value);
+        });
+
+        const startCameraBtn = document.getElementById('start-camera-btn');
+        const stopCameraBtn = document.getElementById('stop-camera-btn');
+        const qrReaderDiv = document.getElementById('qr-reader');
+
+        async function startQrScanner() {
+            qrReaderDiv.classList.remove('hidden');
+            startCameraBtn.classList.add('hidden');
+            stopCameraBtn.classList.remove('hidden');
+
+            if (!html5QrScanner) {
+                html5QrScanner = new Html5Qrcode("qr-reader");
+            }
+
+            try {
+                await html5QrScanner.start(
+                    { facingMode: "environment" },
+                    { fps: 10, qrbox: { width: 220, height: 220 } },
+                    (decodedText) => {
+                        stopQrScanner();
+                        findAndOpenByQueryText(decodedText);
+                    },
+                    () => {}
+                );
+            } catch (err) {
+                alert("कैमरा चालू करने की अनुमति दें: " + err);
+                stopQrScanner();
+            }
+        }
+
+        async function stopQrScanner() {
+            if (html5QrScanner && html5QrScanner.isScanning) {
+                try { await html5QrScanner.stop(); } catch (e) {}
+            }
+            qrReaderDiv.classList.add('hidden');
+            startCameraBtn.classList.remove('hidden');
+            stopCameraBtn.classList.add('hidden');
+        }
+
+        startCameraBtn.addEventListener('click', startQrScanner);
+        stopCameraBtn.addEventListener('click', stopQrScanner);
+        document.getElementById('top-scan-btn').addEventListener('click', () => {
+            document.getElementById('scanner-panel').scrollIntoView({ behavior: 'smooth' });
+            startQrScanner();
+        });
+
+        // ================= CATEGORY-AWARE LUCKY DRAW WINNER PICKER =================
+        const spinWinnerBtn = document.getElementById('spin-winner-btn');
+        const rollerSerial = document.getElementById('roller-serial');
+        const rollerName = document.getElementById('roller-name');
+
+        spinWinnerBtn.addEventListener('click', async () => {
+            const drawCat = document.getElementById('draw-category-select').value;
+            const selectedPrize = document.getElementById('prize-select').value;
+
+            const eligible = allEntries.filter(e => {
+                if (e.isWinner) return false;
+                if (drawCat !== "ALL" && e.category !== drawCat) return false;
+                return true;
+            });
+
+            if (eligible.length === 0) {
+                alert("इस कैटेगरी में लकी ड्रॉ के लिए कोई ग्राहक उपलब्ध नहीं है!");
+                return;
+            }
+
+            spinWinnerBtn.disabled = true;
+            let counter = 0;
+            const totalSpins = 22;
+
+            const interval = setInterval(async () => {
+                const rand = eligible[Math.floor(Math.random() * eligible.length)];
+                rollerSerial.textContent = rand.couponNo || 'SE-2026/00000';
+                rollerName.textContent = `${rand.fullName} [${rand.category}]`;
+                counter++;
+
+                if (counter >= totalSpins) {
+                    clearInterval(interval);
+                    const winner = eligible[Math.floor(Math.random() * eligible.length)];
+                    rollerSerial.textContent = `🏆 ${winner.couponNo}`;
+                    rollerName.textContent = `विजेता: ${winner.fullName} (${winner.category}) | इनाम: ${selectedPrize}`;
+
+                    if (typeof confetti === 'function') {
+                        confetti({ particleCount: 90, spread: 80, origin: { y: 0.6 } });
+                    }
+
+                    try {
+                        await updateDoc(doc(db, winner.sourceCollection, winner.id), {
+                            isWinner: true,
+                            wonPrize: selectedPrize,
+                            wonDate: formatDateDDMMYYYY(new Date())
+                        });
+                        await loadAllCategoriesData();
+                        setTimeout(() => {
+                            window.openEntryModal(winner.id, winner.sourceCollection);
+                        }, 900);
+                    } catch (e) {
+                        console.error(e);
+                    }
+                    spinWinnerBtn.disabled = false;
+                }
+            }, 90);
+        });
+
+        // ================= CATEGORY-WISE EXCEL (CSV) DOWNLOAD =================
+        window.exportCategoryCSV = function(targetCategory) {
+            const listToExport = targetCategory === "ALL"
+                ? allEntries
+                : allEntries.filter(e => e.category === targetCategory);
+
+            if (listToExport.length === 0) {
+                alert(`"${targetCategory}" कैटेगरी में डाउनलोड करने के लिए कोई डेटा नहीं है!`);
+                return;
+            }
+
+            const headers = [
+                "Category",
+                "Coupon_No",
+                "Issued_Date",
+                "Expiry_Date",
+                "Status",
+                "Customer_Name",
+                "Mobile_Number",
+                "Address_Ward",
+                "Email",
+                "Items_Needed",
+                "Payment_Mode",
+                "Occasion_Date",
+                "Redeemed_Discount",
+                "Lucky_Draw_Prize"
+            ];
+
+            const rows = listToExport.map(e => [
+                `"${e.category || 'Normal Customer'}"`,
+                `"${e.couponNo || ''}"`,
+                `"${e.issuedStr || ''}"`,
+                `"${e.expiryStr || ''}"`,
+                `"${e.computedStatus || ''}"`,
+                `"${(e.fullName || '').replace(/"/g, '""')}"`,
+                `"${e.mobileNumber || ''}"`,
+                `"${(e.address || '').replace(/"/g, '""')}"`,
+                `"${e.email || ''}"`,
+                `"${(Array.isArray(e.itemsNeeded) ? e.itemsNeeded.join(' | ') : '').replace(/"/g, '""')}"`,
+                `"${e.paymentMode || ''}"`,
+                `"${e.occasionDate || ''}"`,
+                `"${e.redeemedTier || ''}"`,
+                `"${e.wonPrize || ''}"`
+            ]);
+
+            const csvContent = "\uFEFF" + [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+            const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            const safeCatName = targetCategory.replace(/\s+/g, '_');
+            link.href = url;
+            link.download = `Savitri_Electronics_${safeCatName}_${formatDateDDMMYYYY(new Date()).replace(/\//g, '-')}.csv`;
+            link.click();
+        };
+    </script>
+</body>
+</html>
+
